@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تأكيد طلب الشراء</title>
+    <style>
+        :root { --bg: #f4f6f9; --card: white; --text: #333; }
+        .dark-mode { --bg: #18191a; --card: #242526; --text: #f5f6f7; }
+        body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif; padding: 20px; transition: 0.3s; }
+        .form-container { max-width: 500px; background: var(--card); padding: 30px; margin: auto; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-container img { width: 100%; height: 200px; object-fit: cover; border-radius: 6px; margin-bottom: 15px; }
+        input, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; background: var(--bg); color: var(--text); }
+        button { background: #28a745; color: white; font-size: 16px; border: none; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="form-container">
+    <img src="{{ product[5] }}" alt="product">
+    <h2>طلب منتج: {{ product[1] }}</h2>
+    <p>السعر الرئيسي للمفرد: <strong>{{ product[3] }}$</strong></p>
+    <hr>
+    <form action="/submit_order" method="POST">
+        <input type="hidden" name="product_id" value="{{ product[0] }}">
+        <label>اسم الزبون الكامل:</label>
+        <input type="text" name="customer_name" required placeholder="عبد القادر صباح">
+        <label>رقم الهاتف للاتصال والتوصيل:</label>
+        <input type="text" name="customer_phone" required placeholder="077XXXXXXXX">
+        <label>عنوان السكن التفصيلي:</label>
+        <input type="text" name="customer_address" required placeholder="بغداد - الأعظمية">
+        <label>الكمية المطلوبة:</label>
+        <input type="number" name="quantity" value="1" min="1" required>
+        <label style="color: #007bff; font-weight: bold;">🎟️ كود الخصم (إن وجد):</label>
+        <input type="text" name="promo_code" placeholder="اكتب ASHUR للحصول على خصم 50%">
+        <button type="submit">إرسال وتأكيد الطلب 🚀</button>
+    </form>
+</div>
+<script>if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');</script>
+</body>
+</html>

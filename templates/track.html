@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تتبع حالة طلبك 📦</title>
+    <style>
+        :root { --bg: #f4f6f9; --card: white; --text: #333; --border: #ddd; }
+        .dark-mode { --bg: #18191a; --card: #242526; --text: #f5f6f7; --border: #3a3b3c; }
+        body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif; padding: 20px; transition: 0.3s; }
+        .container { max-width: 600px; margin: auto; background: var(--card); padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: right; }
+        input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; background: var(--bg); color: var(--text); }
+        button { background: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; }
+        .invoice-box { border: 1px solid var(--border); padding: 20px; border-radius: 6px; margin-top: 20px; background: var(--bg); }
+        .status-tracker { display: flex; justify-content: space-between; margin-top: 25px; padding: 0; position: relative; }
+        .status-step { list-style: none; text-align: center; width: 24%; font-size: 12px; font-weight: bold; color: #aaa; }
+        .status-step.active { color: #28a745; }
+        .status-step.rejected { color: #dc3545; }
+        .status-icon { font-size: 24px; display: block; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>📦 تتبع حالة الشحن والطلب</h2>
+    <form action="/track" method="POST">
+        <input type="number" name="order_id" placeholder="أدخل رقم طلبك هنا" required>
+        <button type="submit">بحث وتحديث الحالة 🔍</button>
+    </form>
+    {% if error %}<p style="color: red; font-weight: bold; text-align: center;">{{ error }}</p>{% endif %}
+    {% if order %}
+        <div class="invoice-box">
+            <h3>🧾 تفاصيل الفاتورة (الطلب #{{ order[0] }})</h3>
+            <p>👤 <strong>اسم الزبون:</strong> {{ order[1] }}</p>
+            <p>📞 <strong>رقم الهاتف:</strong> {{ order[2] }}</p>
+            <p>📍 <strong>العنوان:</strong> {{ order[3] }}</p>
+            <hr style="border-color: var(--border);">
+            <p>🛍️ <strong>المنتج:</strong> {{ order[10] }}</p>
+            <p>🔢 <strong>الكمية:</strong> {{ order[5] }} قطع</p>
+            <p>💵 <strong style="color: #28a745; font-size: 18px;">السعر الإجمالي: {{ order[6] }}$</strong></p>
+        </div>
+        <ul class="status-tracker">
+            {% if order[8] == 'Rejected' %}
+                <li class="status-step rejected"><span class="status-icon">❌</span> تم رفض الطلب (الستوك نفذ)</li>
+            {% else %}
+                <li class="status-step {% if order[8] in ['Pending', 'Approved', 'In Transit', 'Delivered'] %}active{% endif %}"><span class="status-icon">⏳</span> قيد المراجعة</li>
+                <li class="status-step {% if order[8] in ['Approved', 'In Transit', 'Delivered'] %}active{% endif %}"><span class="status-icon">✔️</span> تم القبول والاستقطع</li>
+                <li class="status-step {% if order[8] in ['In Transit', 'Delivered'] %}active{% endif %}"><span class="status-icon">🚚</span> في الطريق</li>
+                <li class="status-step {% if order[8] == 'Delivered' %}active{% endif %}"><span class="status-icon">📦</span> تم التسليم</li>
+            {% endif %}
+        </ul>
+    {% endif %}
+    <br><a href="/" style="display:block; text-align:center; color:#007bff; text-decoration:none; font-weight:bold;">⬅️ العودة للمتجر</a>
+</div>
+<script>if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');</script>
+</body>
+</html>

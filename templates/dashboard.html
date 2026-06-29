@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة التحكم والعمليات المتقدمة</title>
+    <style>
+        :root { --bg: #f4f6f9; --card: white; --text: #333; --border: #ddd; }
+        .dark-mode { --bg: #18191a; --card: #242526; --text: #f5f6f7; --border: #3a3b3c; }
+        body { background: var(--bg); color: var(--text); font-family: Arial, sans-serif; padding: 20px; transition: 0.3s; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 15px 30px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .section-box { background: var(--card); padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .form-inline input, .form-inline select { padding: 8px; margin: 5px; border-radius: 4px; border: 1px solid #ccc; background: var(--bg); color: var(--text); }
+        table { width: 100%; background: var(--card); border-collapse: collapse; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 25px; }
+        th, td { padding: 10px; text-align: right; border-bottom: 1px solid var(--border); font-size: 14px; }
+        th { background: #007bff; color: white; }
+        .btn { padding: 6px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; cursor: pointer; border: none; font-size: 12px; display: inline-block;}
+        .btn-approve { background: #28a745; color: white; }
+        .btn-transit { background: #17a2b8; color: white; }
+        .btn-deliver { background: #007bff; color: white; }
+        .btn-reject { background: #dc3545; color: white; }
+        .table-input { width: 70px; padding: 4px; border-radius: 4px; border: 1px solid #ccc; text-align: center; background: var(--bg); color: var(--text); }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h2>📊 الإدارة العامة والتحكم بالمخازن واللوجستيات</h2>
+    <div>
+        <button class="btn" style="background:#333; color:white;" onclick="document.body.classList.toggle('dark-mode')">🌓 المظهر</button>
+        <a href="/" class="btn" style="background:#6c757d; color:white;">💻 المتجر</a>
+    </div>
+</div>
+<div class="section-box">
+    <h3>➕ إضافة منتج جديد للمستودع</h3>
+    <form action="/admin/add_product" method="POST" class="form-inline">
+        <input type="text" name="product_name" placeholder="اسم المنتج" required>
+        <select name="category" required>
+            <option value="Laptops">💻 لابتوبات</option>
+            <option value="Phones">📱 هواتف</option>
+            <option value="Accessories">🖱️ ملحقات</option>
+        </select>
+        <input type="number" name="price" placeholder="السعر" step="0.01" required>
+        <input type="number" name="stock" placeholder="الستوك" required>
+        <input type="text" name="image_url" placeholder="رابط الصورة" required>
+        <button type="submit" class="btn btn-approve">إضافة للمستودع</button>
+    </form>
+</div>
+<div class="section-box" style="overflow-x:auto;">
+    <h3>🛠️ تعديل وتحديث المستودع</h3>
+    <table>
+        <tr>
+            <th>ID</th><th>صورة</th><th>اسم المنتج</th><th>القسم</th><th>السعر ($)</th><th>الستوك</th><th>الخصم (%)</th><th>حفظ</th><th>إجراء</th>
+        </tr>
+        {% for p in products %}
+        <tr>
+            <form action="/admin/update_product/{{ p[0] }}" method="POST">
+                <td>{{ p[0] }}</td>
+                <td><input type="text" name="image_url" value="{{ p[5] }}" style="width:100px; font-size:10px;"></td>
+                <td><strong>{{ p[1] }}</strong></td><td>{{ p[2] }}</td>
+                <td><input type="number" name="price" value="{{ p[3] }}" step="0.01" class="table-input"></td>
+                <td><input type="number" name="stock" value="{{ p[4] }}" class="table-input"></td>
+                <td><input type="number" name="discount" value="{{ p[6] }}" step="0.1" class="table-input"></td>
+                <td><button type="submit" class="btn btn-transit">💾 حفظ</button></td>
+                <td><a href="/admin/delete_product/{{ p[0] }}" class="btn btn-reject">🗑️ حذف</a></td>
+            </form>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+<div class="section-box" style="overflow-x:auto;">
+    <h3>📋 مسار حركة الطلبات</h3>
+    <table>
+        <tr>
+            <th>رقم الطلب</th><th>الزبون وعنوانه</th><th>المنتج</th><th>الكمية</th><th>الحساب الكلي</th><th>الكود</th><th>الحالة</th><th>تغيير الحالة (ACID)</th>
+        </tr>
+        {% for o in orders %}
+        <tr>
+            <td>#{{ o[0] }}</td>
+            <td>👤 <strong>{{ o[1] }}</strong><br>📞 {{ o[2] }}<br>📍 {{ o[3] }}</td>
+            <td>{{ o[10] }}</td><td>{{ o[5] }}</td><td>{{ o[6] }}$</td>
+            <td>{{ o[7] or '-' }}</td>
+            <td><strong>{{ o[8] }}</strong></td>
+            <td>
+                {% if o[8] == 'Pending' %}
+                    <a href="/admin/approve/{{ o[0] }}" class="btn btn-approve">✔️ موافقة واستقطع</a>
+                    <a href="/admin/reject/{{ o[0] }}" class="btn btn-reject">❌ رفض</a>
+                {% elif o[8] == 'Approved' %}
+                    <a href="/admin/status/{{ o[0] }}/In Transit" class="btn btn-transit">🚚 شحن</a>
+                {% elif o[8] == 'In Transit' %}
+                    <a href="/admin/status/{{ o[0] }}/Delivered" class="btn btn-primary">📦 تسليم</a>
+                {% else %}-{% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+<script>if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');</script>
+</body>
+</html>
