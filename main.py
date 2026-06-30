@@ -141,9 +141,16 @@ def login():
     if request.method == 'POST':
         if request.form['username'] == 'admin' and request.form['password'] == '123':
             session['admin'] = True
+            session['show_welcome'] = True
             return redirect(url_for('dashboard'))
         return render_template('login.html', error="اسم المستخدم أو كلمة المرور خطأ!")
     return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('admin', None)
+    session.pop('show_welcome', None)
+    return redirect(url_for('login'))
 
 @app.route('/dashboard')
 def dashboard():
@@ -151,15 +158,39 @@ def dashboard():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT o.*, p.product_name FROM orders o JOIN products p ON o.product_id = p.product_id ORDER BY o.order_id DESC;")
-    orders = cursor.fetchall()
-    
     cursor.execute("SELECT * FROM products ORDER BY product_id DESC;")
     products = cursor.fetchall()
     
+    show_modal = session.pop('show_welcome', False)
+    
     cursor.close()
     conn.close()
-    return render_template('dashboard.html', orders=orders, products=products)
+    return render_template('dashboard.html', products=products, show_modal=show_modal)
+
+@app.route('/api/admin/orders')
+def admin_orders_api():
+    if not session.get('admin'): return jsonify({"error": "Unauthorized"}), 401
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT o.*, p.product_name FROM orders o JOIN products p ON o.product_id = p.product_id ORDER BY o.order_id DESC;")
+    orders = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    
+    orders_list = []
+    for o in orders:
+        orders_list.append({
+            "order_id": o[0],
+            "customer_name": o[1],
+            "customer_phone": o[2],
+            "customer_address": o[3],
+            "product_id": o[4],
+            "quantity": o[5],
+            "total_price": float(o[6]),
+            "promo_code": o[7],
+            "status": o[8]
+        })
+    return jsonify(orders_list)
 
 @app.route('/admin/add_product', methods=['POST'])
 def add_product():
