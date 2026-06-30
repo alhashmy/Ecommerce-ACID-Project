@@ -1,10 +1,10 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import psycopg2
 
 app = Flask(__name__)
 app.secret_key = "super_secret_secure_key_for_session"
 
-# إعدادات قاعدة البيانات المحلية الخاصة بك
 DB_SETTINGS = {
     "host": "localhost",
     "database": "ecommerce_db",
@@ -13,9 +13,10 @@ DB_SETTINGS = {
 }
 
 def get_db_connection():
+    cloud_url = os.environ.get("DATABASE_URL")
+    if cloud_url:
+        return psycopg2.connect(cloud_url, sslmode='require')
     return psycopg2.connect(**DB_SETTINGS)
-
-# ----------------- 👤 شاشات ومسارات الزبون (المتجر) -----------------
 
 @app.route('/')
 def index():
@@ -65,18 +66,15 @@ def submit_order():
         
     price, stock_quantity, p_discount = product_data
     
-    # 🛠️ تصليح تعارض الأنماط: تحويل قيم قاعدة البيانات لقيم float
     price = float(price)
     p_discount = float(p_discount)
     
     current_price = price * (1 - p_discount/100)
     total_price = current_price * quantity
 
-    # 🎟️ تطبيق كود الخصم 50% الخاص بـ ASHUR
     if promo == 'ASHUR':
         total_price = total_price * 0.50
 
-    # 🔍 الفحص الاستباقي الفوري للمستودع
     if quantity > stock_quantity:
         cursor.execute("""
             INSERT INTO orders (customer_name, customer_phone, customer_address, product_id, quantity, total_price, promo_code, status)
@@ -88,7 +86,6 @@ def submit_order():
         conn.close()
         return render_template('waiting.html', order_id=order_id)
 
-    # إذا المخزن تمام ومتوفر، يدخل بحالة Pending
     cursor.execute("""
         INSERT INTO orders (customer_name, customer_phone, customer_address, product_id, quantity, total_price, promo_code, status)
         VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending') RETURNING order_id;
@@ -138,9 +135,6 @@ def track_order():
                 error = "❌ يرجى إدخال رقم طلب صحيح!"
                 
     return render_template('track.html', order=order_data, error=error)
-
-
-# ----------------- 📊 شاشات لوحة تحكم الإدارة (الداشبورد) -----------------
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -228,7 +222,6 @@ def approve_order(order_id):
         
         product_id, quantity = order
         
-        # 🚀 تفعيل الـ Transaction التلقائي الحرج لحماية المخزن والبيانات
         cursor.execute("UPDATE products SET stock_quantity = stock_quantity - %s WHERE product_id = %s;", (quantity, product_id))
         cursor.execute("UPDATE orders SET status = 'Approved' WHERE order_id = %s;", (order_id,))
         conn.commit()
