@@ -5,6 +5,7 @@ import psycopg2
 app = Flask(__name__)
 app.secret_key = "super_secret_secure_key_for_session"
 
+# إعدادات قاعدة البيانات المحلية (تتحول تلقائياً للسحابية عند الرفع)
 DB_SETTINGS = {
     "host": "localhost",
     "database": "ecommerce_db",
@@ -65,16 +66,13 @@ def submit_order():
         return "<h1>❌ المنتج غير موجود!</h1>"
         
     price, stock_quantity, p_discount = product_data
-    
-    price = float(price)
-    p_discount = float(p_discount)
-    
-    current_price = price * (1 - p_discount/100)
+    current_price = float(price) * (1 - float(p_discount)/100)
     total_price = current_price * quantity
 
     if promo == 'ASHUR':
         total_price = total_price * 0.50
 
+    # إذا كانت الكمية المطلوبة أكبر من المخزن، يرفض الطلب فوراً لحماية السيستم (Predictive Guard)
     if quantity > stock_quantity:
         cursor.execute("""
             INSERT INTO orders (customer_name, customer_phone, customer_address, product_id, quantity, total_price, promo_code, status)
@@ -235,6 +233,18 @@ def delete_product(product_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM products WHERE product_id = %s;", (product_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return redirect(url_for('dashboard'))
+
+# 🔥 ميزة الحذف الفردي والنهائي للطلبات المضافة لتصفية لوحة التحكم وتصفيرها
+@app.route('/admin/delete_order/<int:order_id>')
+def delete_order(order_id):
+    if not session.get('admin'): return redirect(url_for('login'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM orders WHERE order_id = %s;", (order_id,))
     conn.commit()
     cursor.close()
     conn.close()

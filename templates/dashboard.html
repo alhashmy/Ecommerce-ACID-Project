@@ -4,167 +4,178 @@
     <meta charset="UTF-8">
     <title>لوحة التحكم الذكية ونظام المراقبة اللحظي</title>
     <style>
-        :root { --bg: #f4f6f9; --card: white; --text: #1e293b; --border: #e2e8f0; --primary: #007bff; }
-        .dark-mode { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --border: #334155; --primary: #3b82f6; }
+        :root { --bg: #f4f6f9; --card: white; --text: #1e293b; --border: #e2e8f0; --primary: #1e3a8a; --accent: #3b82f6; }
+        .dark-mode { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --border: #334155; --primary: #3b82f6; --accent: #60a5fa; }
         
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; margin:0; transition: 0.3s; }
-        .header { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 15px 30px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 15px 30px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         
-        /* كروت الإحصائيات الفخمة */
+        /* كروت الإحصائيات المتقدمة */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px; }
-        .stat-card { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; }
+        .stat-card { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
         .stat-card h4 { margin: 0; color: #64748b; font-size: 14px; text-transform: uppercase; }
-        .stat-card .value { font-size: 28px; font-weight: bold; margin-top: 5px; color: var(--primary); }
+        .stat-card .value { font-size: 28px; font-weight: bold; margin-top: 5px; color: var(--accent); }
 
         .section-box { background: var(--card); padding: 25px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border); }
-        .form-inline { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-        .form-inline input, .form-inline select { padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; }
+        .form-inline { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+        .form-inline input, .form-inline select { padding: 11px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; outline: none; }
+        .form-inline input:focus { border-color: var(--accent); }
         
         table { width: 100%; background: var(--card); border-collapse: collapse; border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
-        th, td { padding: 14px; text-align: right; border-bottom: 1px solid var(--border); font-size: 14px; }
-        th { background: #1e3a8a; color: white; font-weight: 600; }
+        th, td { padding: 14px 18px; text-align: right; border-bottom: 1px solid var(--border); font-size: 14px; }
+        th { background: #1e3a8a; color: white; font-weight: 600; letter-spacing: 0.5px; }
         tr:hover { background: rgba(0,0,0,0.02); }
         
-        .btn { padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; cursor: pointer; border: none; font-size: 13px; display: inline-block; transition: 0.2s; }
+        /* أزرار العمليات والتحكم للـ UI */
+        .btn { padding: 8px 14px; border-radius: 6px; text-decoration: none; font-weight: bold; cursor: pointer; border: none; font-size: 13px; display: inline-block; transition: 0.2s; text-align: center; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
         .btn-approve { background: #10b981; color: white; }
         .btn-transit { background: #06b6d4; color: white; }
-        .btn-deliver { background: #3b82f6; color: white; }
+        .btn-deliver { background: #2563eb; color: white; }
         .btn-reject { background: #ef4444; color: white; }
-        .btn-logout { background: #64748b; color: white; }
-        .table-input { width: 80px; padding: 6px; border-radius: 6px; border: 1px solid var(--border); text-align: center; background: var(--bg); color: var(--text); }
+        .btn-logout { background: #475569; color: white; }
+        .table-input { width: 85px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); text-align: center; background: var(--bg); color: var(--text); outline: none; }
+        .table-input:focus { border-color: var(--accent); }
         
-        /* تصميم الـ Welcome Modal للمبدعين */
-        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-        .modal-box { background: var(--card); padding: 35px; border-radius: 16px; max-width: 500px; width: 90%; text-align: center; border: 2px solid var(--primary); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .students-list { list-style: none; padding: 0; margin: 20px 0; text-align: right; background: var(--bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border); }
-        .students-list li { padding: 8px 0; font-size: 15px; font-weight: bold; border-bottom: 1px dashed var(--border); }
+        /* شاشة الترحيب بطلاب جامعة آشور */
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15,23,42,0.75); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
+        .modal-box { background: var(--card); padding: 40px; border-radius: 16px; max-width: 520px; width: 90%; text-align: center; border: 2px solid var(--accent); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .students-list { list-style: none; padding: 0; margin: 25px 0; text-align: right; background: var(--bg); padding: 18px; border-radius: 10px; border: 1px solid var(--border); }
+        .students-list li { padding: 10px 0; font-size: 15px; font-weight: bold; border-bottom: 1px dashed var(--border); display: flex; justify-content: space-between; }
         .students-list li:last-child { border-bottom: none; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
 
+<!-- الشاشة الترحيبية التلقائية بأسماء المبدعين بجامعة آشور -->
 {% if show_modal %}
 <div class="modal-overlay" id="welcomeModal">
     <div class="modal-box">
-        <h2 style="color: var(--primary); margin-top: 0;">🎉 أهلاً بك في نظام الإدارة الذكي</h2>
-        <p style="font-size: 15px; line-height: 1.5;">هذا النظام ومحرك حماية المخازن والعمليات اللوجستية (ACID Compliance) تم بناؤه وتطويره بالكامل من قبل طلاب <strong>جامعة آشور - كلية الهندسة - قسم هندسة الأمن السيبراني (المرحلة الثانية)</strong>:</p>
+        <h2 style="color: var(--accent); margin-top: 0; font-size: 24px;">🎉 أهلاً بك في لوحة تحكم النظام</h2>
+        <p style="font-size: 15px; line-height: 1.6; color:#64748b;">هذا المشروع ومحرك حماية العمليات والمخازن المشفرة تم بناؤه وتطويره بالكامل من قبل طلاب <strong style="color:var(--text);">جامعة آشور - كلية الهندسة - قسم هندسة الأمن السيبراني (المرحلة الثانية)</strong>:</p>
         
         <ul class="students-list">
-            <li>👤 علي خلدون احمد — <span style="color:var(--primary);">Section D</span></li>
-            <li>👤 زهراء رياض جبر — <span style="color:var(--primary);">Section D</span></li>
-            <li>👤 رغده عماد عبد الحميد — <span style="color:var(--primary);">Section F</span></li>
-            <li>👤 خالد وليد خالد — <span style="color:var(--primary);">Section F</span></li>
-            <li>👤 محمد الطائي — <span style="color:var(--primary);">Section F</span></li>
+            <li><span>👤 علي خلدون احمد</span> <span style="color:var(--accent);">Section D[cite: 4]</span></li>
+            <li><span>👤 زهراء رياض جبر</span> <span style="color:var(--accent);">Section D[cite: 4]</span></li>
+            <li><span>👤 رغده عماد عبد الحميد</span> <span style="color:var(--accent);">Section F[cite: 4]</span></li>
+            <li><span>👤 خالد وليد خالد</span> <span style="color:var(--accent);">Section F[cite: 4]</span></li>
+            <li><span>👤 محمد الطائي</span> <span style="color:var(--accent);">Section F[cite: 4]</span></li>
         </ul>
         
-        <button class="btn btn-deliver" style="width: 100%; padding: 12px; font-size: 15px;" onclick="document.getElementById('welcomeModal').style.display='none'">الدخول للوحة العمليات 🚀</button>
+        <button class="btn btn-deliver" style="width: 100%; padding: 14px; font-size: 15px; border-radius: 8px;" onclick="document.getElementById('welcomeModal').style.display='none'">الدخول للوحة العمليات الحية 🚀</button>
     </div>
 </div>
 {% endif %}
 
 <div class="header">
     <div>
-        <h2 style="margin:0; font-size: 22px;">📊 الإدارة العامة والتحكم بالمخازن واللوجستيات</h2>
-        <small style="color: #64748b; font-weight: bold;">🔴 نظام مراقبة حركي مباشر (Live Sync Active)</small>
+        <h2 style="margin:0; font-size: 22px; color: var(--accent);">📊 الإدارة المركزية وحماية سلاسل الإمداد والمخازن</h2>
+        <small style="color: #10b981; font-weight: bold; display: flex; align-items: center; margin-top: 4px;">
+            <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block; margin-left: 6px; animation: pulse 1.5s infinite;"></span>
+            نظام المراقبة اللحظي والربط التلقائي نشط ومباشر (Live Async)[cite: 4]
+        </small>
     </div>
     <div>
-        <button class="btn" style="background:#334155; color:white; margin-left: 10px;" onclick="document.body.classList.toggle('dark-mode')">🌓 المظهر</button>
-        <a href="/" class="btn" style="background:#0284c7; color:white; margin-left: 10px;">💻 المتجر المفتوح</a>
-        <a href="/logout" class="btn btn-logout" onclick="return confirm('هل أنت متأكد من تسجيل الخروج؟')">🚪 تسجيل الخروج</a>
+        <button class="btn" style="background:#334155; color:white; margin-left: 8px;" onclick="document.body.classList.toggle('dark-mode')">🌓 المظهر</button>
+        <a href="/" class="btn" style="background:#0284c7; color:white; margin-left: 8px;">💻 تصفح المتجر</a>
+        <a href="/logout" class="btn btn-logout" onclick="return confirm('هل أنت متأكد من تسجيل الخروج وحماية الجلسة؟')">🚪 تسجيل الخروج</a>
     </div>
 </div>
 
+<!-- كروت المعطيات والمبيعات الذكية المحدثة أوتوماتيكياً -->
 <div class="stats-grid">
-    <div class="stat-card">
-        <h4>إجمالي مبيعات المتجر</h4>
+    <div class="stat-card" style="border-right: 5px solid #2563eb;">
+        <h4>إجمالي رأس مال المبيعات</h4>
         <div class="value" id="stat-revenue">0$</div>
     </div>
-    <div class="stat-card">
-        <h4>الطلبات الكلية المستلمة</h4>
+    <div class="stat-card" style="border-right: 5px solid #475569;">
+        <h4>الطلبات الواردة للسيستم</h4>
         <div class="value" id="stat-total-orders">0</div>
     </div>
-    <div class="stat-card">
-        <h4>⏰ طلبات قيد المراجعة</h4>
+    <div class="stat-card" style="border-right: 5px solid #d97706;">
+        <h4>⏰ طلبات قيد الانتظار والمراجعة</h4>
         <div class="value" id="stat-pending" style="color: #d97706;">0</div>
     </div>
-    <div class="stat-card">
-        <h4>🚚 طلبات شُحنت بالطريق</h4>
-        <div class="value" id="stat-transit" style="color: #08g; color:#06b6d4;">0</div>
+    <div class="stat-card" style="border-right: 5px solid #06b6d4;">
+        <h4>🚚 شحنات في طريقها للمحافظات</h4>
+        <div class="value" id="stat-transit" style="color: #06b6d4;">0</div>
     </div>
 </div>
 
-<div class="section-box" style="overflow-x:auto; border-top: 4px solid var(--primary);">
+<div class="section-box" style="overflow-x:auto; border-top: 4px solid var(--accent);">
     <h3 style="margin-top:0; display:flex; justify-content:space-between; align-items:center;">
-        <span>📋 مسار حركة وشحن الطلبات اللحظي للزبائن</span>
-        <span style="font-size:12px; background:rgba(16,185,129,0.2); color:#10b981; padding:4px 10px; border-radius:20px; animation: pulse 2s infinite;">تحديث تلقائي مستمر ⚡</span>
+        <span>📋 المسار اللوجستي وحركة الفواتير والطلبات المستلمة</span>
+        <span style="font-size:12px; background:rgba(16,185,129,0.15); color:#10b981; padding:5px 12px; border-radius:20px; font-weight: bold;">تحديث تلقائي لحظي مستمر ⚡[cite: 4]</span>
     </h3>
     <table>
         <thead>
             <tr>
                 <th>رقم الطلب</th>
-                <th>بيانات الزبون وعنوانه</th>
-                <th>المنتج المطلوبة</th>
+                <th>بيانات الهوية والعنوان للزبون</th>
+                <th>اسم المنتج المطلوب</th>
                 <th>الكمية</th>
-                <th>الحساب الكلي بعد الخصم</th>
+                <th>الحساب الكلي</th>
                 <th>الكود</th>
-                <th>الحالة الحالية</th>
-                <th>إجراء وتغيير حالة الشحن (ACID)</th>
+                <th>الحالة الأمنية واللوجستية</th>
+                <th>إجراء وتغيير حالة الشحن وحذف السجلات (ACID)</th>
             </tr>
         </thead>
         <tbody id="live-orders-table-body">
-            </tbody>
+            <!-- الـ JavaScript يقذف البيانات الحية هنا تلقائياً كل 3 ثوانٍ بدون تحديث صفحة[cite: 4] -->
+        </tbody>
     </table>
 </div>
 
 <div class="section-box" style="border-top: 4px solid #10b981;">
-    <h3>➕ إضافة منتج جديد كلياً للمستودع الرئيسي</h3>
+    <h3>➕ إضافة سلعة أو منتج جديد إلى المستودع الرئيسي</h3>
     <form action="/admin/add_product" method="POST" class="form-inline">
         <input type="text" name="product_name" placeholder="اسم البضاعة الجديدة" required style="flex:2;">
         <select name="category" required>
-            <option value="Laptops">💻 لابتوبات</option>
+            <option value="Laptops">💻 لابتوبات وصيانة</option>
             <option value="Phones">📱 هواتف وصوتيات</option>
-            <option value="Accessories">🖱️ ملحقات وألعاب</option>
+            <option value="Accessories">🖱️ ملحقات وألعاب الإلكترونية</option>
         </select>
-        <input type="number" name="price" placeholder="السعر بمفرد $" step="0.01" required style="width:100px;">
-        <input type="number" name="stock" placeholder="الستوك الأولي" required style="width:100px;">
+        <input type="number" name="price" placeholder="السعر بمفرد $" step="0.01" required style="width:110px;">
+        <input type="number" name="stock" placeholder="الستوك المادي" required style="width:110px;">
         <input type="text" name="image_url" placeholder="رابط صورة المنتج" required style="flex:2;">
-        <button type="submit" class="btn btn-approve" style="padding:11px 25px;">إدخال للمستودع 💾</button>
+        <button type="submit" class="btn btn-approve" style="padding:11px 25px; border-radius: 8px;">إدخال وتشفير بالمستودع 💾</button>
     </form>
 </div>
 
-<div class="section-box" style="overflow-x:auto; border-top: 4px solid #64748b;">
-    <h3>🛠️ تعديل وتحديث حقول المنتجات والكميات الحالية بالمخزن</h3>
+<div class="section-box" style="overflow-x:auto; border-top: 4px solid #475569;">
+    <h3>🛠️ تعديل الأسعار، الستوكات، والخصومات للمنتجات الحالية داخل المخزن</h3>
     <table>
         <thead>
             <tr>
                 <th>ID</th>
-                <th>معاينة وتحديث الصورة</th>
+                <th>معاينة وتعديل مسار الصورة</th>
                 <th>اسم المنتج الرئيسي</th>
-                <th>القسم الفئوي</th>
-                <th>السعر ($)</th>
-                <th>الستوك المادي</th>
-                <th>الخصم الحالي (%)</th>
-                <th>تحديث سريع</th>
-                <th>إجراء حذف</th>
+                <th>الفئة اللوجستية</th>
+                <th>السعر المالي ($)</th>
+                <th>الكمية المتوفرة بالمخزن</th>
+                <th>الخصم المتاح (%)</th>
+                <th>حفظ التغييرات</th>
+                <th>حذف المنتج نهائياً</th>
             </tr>
         </thead>
         <tbody>
             {% for p in products %}
             <tr>
                 <form action="/admin/update_product/{{ p[0] }}" method="POST">
-                    <td>{{ p[0] }}</td>
+                    <td><code>#{{ p[0] }}</code></td>
                     <td>
-                        <img src="{{ p[5] }}" width="45" height="45" style="object-fit:cover; border-radius:6px; vertical-align:middle; margin-left:8px;">
-                        <input type="text" name="image_url" value="{{ p[5] }}" style="width:110px; font-size:11px; padding:4px; border-radius:4px; border:1px solid var(--border);">
+                        <img src="{{ p[5] }}" width="45" height="45" style="object-fit:cover; border-radius:8px; vertical-align:middle; margin-left:8px; border:1px solid var(--border);">
+                        <input type="text" name="image_url" value="{{ p[5] }}" style="width:120px; font-size:11px; padding:5px; border-radius:4px; border:1px solid var(--border);">
                     </td>
                     <td><strong>{{ p[1] }}</strong></td>
-                    <td><span style="font-size:12px; background:rgba(0,0,0,0.05); padding:3px 8px; border-radius:4px;">{{ p[2] }}</span></td>
-                    <td><input type="number" name="price" value="{{ p[3] }}" step="0.01" class="table-input" style="width:90px;"></td>
+                    <td><span style="font-size:12px; background:rgba(0,0,0,0.04); padding:4px 8px; border-radius:6px; font-weight:500;">{{ p[2] }}</span></td>
+                    <td><input type="number" name="price" value="{{ p[3] }}" step="0.01" class="table-input" style="width:95px;"></td>
                     <td><input type="number" name="stock" value="{{ p[4] }}" class="table-input"></td>
-                    <td><input type="number" name="discount" value="{{ p[6] }}" step="0.1" class="table-input" min="0" max="100"></td>
+                    <td><input type="number" name="discount" value="{{ p[6] }}" step="0.1" class="table-input" min="0" max="100" style="width:75px;"></td>
                     <td><button type="submit" class="btn btn-transit">💾 حفظ</button></td>
-                    <td><a href="/admin/delete_product/{{ p[0] }}" class="btn btn-reject" onclick="return confirm('حذف هذا المنتج كلياً من المخزن؟')">🗑️ حذف</a></td>
+                    <td><a href="/admin/delete_product/{{ p[0] }}" class="btn btn-reject" onclick="return confirm('هل أنت متأكد من حذف هذا المنتج وجميع بياناته من المخزن نهائياً؟')">🗑️ حذف المنتج</a></td>
                 </form>
             </tr>
             {% endfor %}
@@ -173,9 +184,7 @@
 </div>
 
 <script>
-    if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
-
-    // ⚡ محرك التحديث الأوتوماتيكي واللحظي للجداول والعدادات الذكية بدون ريفريش صفحة
+    // ⚡ محرك التحديث والربط اللحظي للجداول والعدادات المباشرة بالخلفية بدون ريفريش[cite: 4]
     function fetchLiveOrdersData() {
         fetch('/api/admin/orders')
             .then(res => res.json())
@@ -183,58 +192,56 @@
                 let tableBody = document.getElementById('live-orders-table-body');
                 let htmlRows = '';
                 
-                // عدادات الإحصائيات
                 let totalOrders = orders.length;
                 let pendingCount = 0;
                 let transitCount = 0;
                 let totalRevenue = 0;
 
                 orders.forEach(o => {
-                    // حساب الإحصائيات حركياً بالخلفية
                     if(o.status === 'Pending') pendingCount++;
                     if(o.status === 'In Transit') transitCount++;
                     if(o.status === 'Approved' || o.status === 'In Transit' || o.status === 'Delivered') {
                         totalRevenue += o.total_price;
                     }
 
-                    // تجهيز لون الستاتوس بادج
-                    let badgeBg = '';
-                    if(o.status === 'Pending') badgeBg = 'background:#fef3c7; color:#d97706;';
-                    else if(o.status === 'Approved') badgeBg = 'background:#d1fae5; color:#059669;';
-                    else if(o.status === 'In Transit') badgeBg = 'background:#ecfeff; color:#0891b2;';
-                    else if(o.status === 'Delivered') badgeBg = 'background:#eff6ff; color:#2563eb;';
-                    else badgeBg = 'background:#fee2e2; color:#dc2626;';
+                    let badgeStyle = '';
+                    if(o.status === 'Pending') badgeStyle = 'background:#fef3c7; color:#d97706;';
+                    else if(o.status === 'Approved') badgeStyle = 'background:#d1fae5; color:#059669;';
+                    else if(o.status === 'In Transit') badgeStyle = 'background:#ecfeff; color:#0891b2;';
+                    else if(o.status === 'Delivered') badgeStyle = 'background:#eff6ff; color:#2563eb;';
+                    else badgeStyle = 'background:#fee2e2; color:#dc2626;';
 
-                    // بناء أزرار العمليات بحسب حالة الـ ACID للطلب
+                    // بناء أزرار العمليات اللوجستية حركياً[cite: 4]
                     let actionsHtml = '';
                     if (o.status === 'Pending') {
                         actionsHtml = `<a href="/admin/approve/${o.order_id}" class="btn btn-approve" style="margin-left:5px;">✔️ موافقة واستقطع</a>
-                                       <a href="/admin/reject/${o.order_id}" class="btn btn-reject">❌ رفض</a>`;
+                                       <a href="/admin/reject/${o.order_id}" class="btn btn-reject" style="margin-left:5px;">❌ رفض</a>`;
                     } else if (o.status === 'Approved') {
-                        actionsHtml = `<a href="/admin/status/${o.order_id}/In Transit" class="btn btn-transit">🚚 شحن (في الطريق)</a>`;
+                        actionsHtml = `<a href="/admin/status/${o.order_id}/In Transit" class="btn btn-transit" style="margin-left:5px;">🚚 شحن (في الطريق)</a>`;
                     } else if (o.status === 'In Transit') {
-                        actionsHtml = `<a href="/admin/status/${o.order_id}/Delivered" class="btn btn-deliver">📦 تم التسليم للزبون</a>`;
+                        actionsHtml = `<a href="/admin/status/${o.order_id}/Delivered" class="btn btn-deliver" style="margin-left:5px;">📦 تم التسليم للزبون</a>`;
                     } else {
-                        actionsHtml = `<span style="color:#64748b; font-weight:bold;">🔒 مكتمل ومحفوظ</span>`;
+                        actionsHtml = `<span style="color:#64748b; font-weight:bold; margin-left:8px;">🔒 مكتمل ومحفوظ</span>`;
                     }
 
-                    // توليد أسطر الجداول
+                    // 🔥 دمج كود ميزة زر حذف الطلب النهائي المحدث والآمن بالخلفية[cite: 4]
+                    actionsHtml += `<a href="/admin/delete_order/${o.order_id}" class="btn btn-reject" style="background:#b91c1c; padding:6px 12px;" onclick="return confirm('هل أنت متأكد من حذف هذا الطلب وإزالته نهائياً من قاعدة البيانات السحابية؟')">🗑️ حذف</a>`;
+
                     htmlRows += `
                         <tr>
-                            <td>#${o.order_id}</td>
+                            <td><code>#${o.order_id}</code></td>
                             <td>👤 <strong>${o.customer_name}</strong><br>📞 ${o.customer_phone}<br>📍 ${o.customer_address}</td>
                             <td><strong>${o.product_name}</strong></td>
-                            <td><span style="background:rgba(0,0,0,0.03); padding:3px 8px; border-radius:4px; font-weight:bold;">${o.quantity}</span></td>
+                            <td><span style="background:rgba(0,0,0,0.03); padding:4px 8px; border-radius:6px; font-weight:bold;">${o.quantity}</span></td>
                             <td><strong style="color:#10b981; font-size:15px;">${o.total_price}$</strong></td>
-                            <td>${o.promo_code ? `<span style="background:#d1fae5; color:#069669; padding:2px 6px; border-radius:4px; font-size:12px;">${o.promo_code}</span>` : '-'}</td>
-                            <td><span style="padding:4px 8px; border-radius:6px; font-weight:bold; font-size:12px; ${badgeBg}">${o.status}</span></td>
+                            <td>${o.promo_code ? `<span style="background:#d1fae5; color:#059669; padding:2px 6px; border-radius:4px; font-size:12px; font-weight:bold;">${o.promo_code}</span>` : '-'}</td>
+                            <td><span style="padding:5px 10px; border-radius:6px; font-weight:bold; font-size:12px; ${badgeStyle}">${o.status}</span></td>
                             <td>${actionsHtml}</td>
                         </tr>
                     `;
                 });
 
-                // ضخ البيانات الحية فوراً للواجهة
-                tableBody.innerHTML = htmlRows || '<tr><td colspan="8" style="text-align:center; color:#64748b;">لا يوجد طلبات مستلمة حتى الآن.</td></tr>';
+                tableBody.innerHTML = htmlRows || '<tr><td colspan="8" style="text-align:center; color:#64748b;">لا يوجد طلبات واردة في النظام حالياً.</td></tr>';
                 document.getElementById('stat-total-orders').innerText = totalOrders;
                 document.getElementById('stat-pending').innerText = pendingCount;
                 document.getElementById('stat-transit').innerText = transitCount;
@@ -242,7 +249,7 @@
             });
     }
 
-    // تشغيل الفحص اللحظي كل 3 ثوانٍ (3000ms) لقذف الطلبات تلقائياً فور وصولها
+    // تشغيل الفحص اللحظي والاتصال الدائم كل 3 ثوانٍ لقذف الطلبات تلقائياً[cite: 4]
     setInterval(fetchLiveOrdersData, 3000);
     window.onload = fetchLiveOrdersData;
 </script>
